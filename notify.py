@@ -45,11 +45,14 @@ def _delta_html(metric: str, value: float | None, unit: str) -> str:
     green/red by whether the move was in the goal's good direction.
     """
     if value is None or pd.isna(value):
-        return '<span style="color:#898781">—</span>'
+        return '<span style="color:#898781">&mdash;</span>'
     if round(value, 1) == 0:
         return '<span style="color:#898781">no change</span>'
 
-    arrow = "▲" if value > 0 else "▼"  # ▲ / ▼
+    # HTML entities, not raw unicode glyphs -- keeps the email body pure ASCII
+    # so it renders correctly in any client regardless of charset guessing
+    # (&#9650; up-triangle, &#9660; down-triangle).
+    arrow = "&#9650;" if value > 0 else "&#9660;"
     good_dir = _goal_direction(metric)
     if good_dir == 0:
         color = "#898781"
@@ -62,7 +65,7 @@ def _delta_html(metric: str, value: float | None, unit: str) -> str:
 def _fmt(value: float | None, unit: str = "") -> str:
     """Format a metric value to 1 decimal for the email, or an em dash if it's missing that week."""
     if value is None or pd.isna(value):
-        return '<span style="color:#898781">—</span>'
+        return '<span style="color:#898781">&mdash;</span>'
     return f"{value:.1f}{unit}"
 
 
@@ -99,7 +102,7 @@ def _row_dict(row: pd.Series, week_ending: pd.Timestamp) -> dict:
     """Pull the display fields for one weekly row into a plain dict (with a full 'Week of' label)."""
     week_start = week_ending - pd.Timedelta(days=6)
     return {
-        "label": f"{week_start.strftime('%b %-d')} – {week_ending.strftime('%b %-d, %Y')}",
+        "label": f"{week_start.strftime('%b %-d')} &ndash; {week_ending.strftime('%b %-d, %Y')}",
         "readings": int(row["readings"]),
         "weight_lb": row["weight_lb"],
         "bodyfat": row["bodyfat"],
@@ -124,7 +127,7 @@ def build_email(weekly: pd.DataFrame, week_ending_iso: str) -> tuple[str, str]:
     last_week = _row_dict(weekly.iloc[pos - 1], weekly.index[pos - 1]) if pos > 0 else None
 
     def col(week, key, unit=""):
-        return _fmt(week[key], unit) if week else '<span style="color:#898781">—</span>'
+        return _fmt(week[key], unit) if week else '<span style="color:#898781">&mdash;</span>'
 
     rows = [
         ("Weight", "weight_lb", " lb"),
@@ -149,7 +152,7 @@ def build_email(weekly: pd.DataFrame, week_ending_iso: str) -> tuple[str, str]:
     html_body = f"""\
 <div style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#0b0b0b;max-width:520px">
   <h2 style="margin:0 0 4px">Weekly weight summary</h2>
-  <p style="margin:0 0 16px;color:#52514e">{this_week['label']} · {this_week['readings']} weigh-in(s)</p>
+  <p style="margin:0 0 16px;color:#52514e">{this_week['label']} &middot; {this_week['readings']} weigh-in(s)</p>
   <table style="border-collapse:collapse;font-size:15px">
     <thead>
       <tr style="color:#52514e;font-size:13px">
