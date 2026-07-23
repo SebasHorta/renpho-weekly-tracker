@@ -7,10 +7,14 @@
   possible," even if the laptop was asleep on the exact day a stricter
   once-a-week schedule would have required.
 
-  This file is a copy kept in the repo for documentation/version control.
-  The copy launchd actually reads lives at
-  ~/Library/LaunchAgents/com.renpho.weeklycheck.plist -- re-copy this file
-  there (see README) after editing it here.
+  This file is a copy kept in the repo for documentation/version control,
+  with placeholder paths (/Users/YOUR_USERNAME/path/to/RENPHO-Project) rather
+  than a real machine-specific path, so the public repo doesn't expose a real
+  username. The copy launchd actually reads lives at
+  ~/Library/LaunchAgents/com.renpho.weeklycheck.plist, with your real
+  absolute path -- that installed copy is NOT tracked in git. After editing
+  this repo copy, find-and-replace the placeholder with your real path
+  before re-copying it there (see README).
 -->
 <plist version="1.0">
 <dict>
@@ -22,14 +26,14 @@
          so it has renpho-api/pandas installed) running weekly_check.py. -->
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/sebastianhortadonneys/Downloads/PersonalProjects/RENPHO-Project/venv/bin/python3</string>
-        <string>/Users/sebastianhortadonneys/Downloads/PersonalProjects/RENPHO-Project/weekly_check.py</string>
+        <string>/Users/YOUR_USERNAME/path/to/RENPHO-Project/venv/bin/python3</string>
+        <string>/Users/YOUR_USERNAME/path/to/RENPHO-Project/weekly_check.py</string>
     </array>
 
     <!-- Run from the project directory, so relative paths (renpho_data.db,
          .env) resolve the same way they do when you run it by hand. -->
     <key>WorkingDirectory</key>
-    <string>/Users/sebastianhortadonneys/Downloads/PersonalProjects/RENPHO-Project</string>
+    <string>/Users/YOUR_USERNAME/path/to/RENPHO-Project</string>
 
     <!-- Daily at 9:00 AM local time. If the Mac is asleep at 9:00, launchd
          runs the job as soon as it wakes rather than skipping the day.
@@ -45,9 +49,9 @@
     <!-- weekly_check.py's own timestamped log lines land here instead of
          vanishing -- launchd jobs have no visible terminal. -->
     <key>StandardOutPath</key>
-    <string>/Users/sebastianhortadonneys/Downloads/PersonalProjects/RENPHO-Project/logs/weekly_check.log</string>
+    <string>/Users/YOUR_USERNAME/path/to/RENPHO-Project/logs/weekly_check.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/sebastianhortadonneys/Downloads/PersonalProjects/RENPHO-Project/logs/weekly_check.err.log</string>
+    <string>/Users/YOUR_USERNAME/path/to/RENPHO-Project/logs/weekly_check.err.log</string>
 
     <!-- Don't fire immediately the moment the job is loaded -- only on the
          schedule above. Use `launchctl start com.renpho.weeklycheck` to

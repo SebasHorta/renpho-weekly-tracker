@@ -60,9 +60,9 @@ Syncs new measurements from Renpho, upserts them into `renpho_data.db`, regenera
 
 Scheduled locally via `launchd` (macOS's scheduler) rather than a cloud cron: free, your Renpho/email credentials never leave the machine, and the unofficial API gets called from your home IP where it already works. Trade-off: it only runs when the Mac is on/awake -- fine for a weekly check.
 
-Install (one-time):
+Install (one-time): the repo's copy of the plist uses a placeholder path (`/Users/YOUR_USERNAME/path/to/RENPHO-Project`) rather than a real one, so the public repo doesn't expose your username -- replace it with your actual absolute path to this directory before installing:
 ```
-cp com.renpho.weeklycheck.plist ~/Library/LaunchAgents/
+sed "s|/Users/YOUR_USERNAME/path/to/RENPHO-Project|$(pwd)|g" com.renpho.weeklycheck.plist > ~/Library/LaunchAgents/com.renpho.weeklycheck.plist
 launchctl load ~/Library/LaunchAgents/com.renpho.weeklycheck.plist
 ```
 Runs daily at 9:00 AM by default -- edit the `Hour`/`Minute` in the plist (both the repo copy and the installed copy) to change it. Useful commands:
