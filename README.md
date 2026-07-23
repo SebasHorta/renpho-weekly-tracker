@@ -17,25 +17,40 @@ Built defensively around `renpho-api`, an unofficial, reverse-engineered client 
 | Scheduling | `launchd` (macOS), daily | Local, free, credentials never leave the machine |
 | Notifications | Gmail SMTP via stdlib `smtplib` | No new dependency, no paid service |
 
-## Architecture
+## Project structure
 
 ```
-fetcher.py  -> pulls + normalizes measurements from the Renpho cloud API
-store.py    -> SQLite, idempotent upsert, outlier flagging (source of truth)
-analysis.py -> pandas weekly resample (Sun-Sat) + week-over-week deltas
-report.py   -> writes report.html
-notify.py   -> builds + sends the weekly summary email
+run.py                       entry point: fetch -> store -> report -> open (manual)
+weekly_check.py               entry point: fetch -> store -> notify (automated, headless)
+com.renpho.weeklycheck.plist  launchd job definition -- see Automation
+
+renpho_tool/                  the pipeline ("backend")
+├── fetcher.py                pulls + normalizes measurements from the Renpho cloud API
+├── store.py                  SQLite, idempotent upsert, outlier flagging (source of truth)
+├── analysis.py                pandas weekly resample (Sun-Sat) + week-over-week deltas
+├── report.py                  computes report data, stitches report_assets/ into report.html
+└── notify.py                  builds + sends the weekly summary email
+
+report_assets/                 the report's page ("frontend") -- real .html/.css/.js source files,
+├── template.html               inlined into one self-contained report.html at generation time,
+├── styles.css                  not linked externally -- the output still has zero runtime
+└── report.js                   dependencies, this only affects how the source is organized
+
+scripts/exploration/           one-off investigation scripts, kept for the reasoning behind
+                                 design decisions -- not part of the active pipeline
+
+.env.example                   copy to .env and fill in your own credentials (gitignored)
 ```
-`run.py` chains fetch -> store -> report -> open, for manual use. `weekly_check.py` chains fetch -> store -> notify, for the automated daily job -- see Automation below. If `renpho-api` ever breaks, only `fetcher.py` needs to change — everything downstream just reads from SQLite.
+If `renpho-api` ever breaks, only `fetcher.py` needs to change — everything downstream just reads from SQLite.
 
 ## Setup
 
 ```
 python3 -m venv venv
 venv/bin/pip install "renpho-api[dotenv]" pandas
+cp .env.example .env
 ```
-
-Create a `.env` file (gitignored) with:
+Then fill in `.env` (gitignored -- your real credentials never touch git) with your own values:
 ```
 RENPHO_EMAIL=your_email@example.com
 RENPHO_PASSWORD=your_password
@@ -52,7 +67,7 @@ EMAIL_APP_PASSWORD=your16charapppassword
 ```
 venv/bin/python run.py
 ```
-Syncs new measurements from Renpho, upserts them into `renpho_data.db`, regenerates `report.html`, and opens it in your browser. If Renpho is unreachable or breaks, it falls back to reporting on whatever's already synced instead of crashing -- see `GOAL_MODE` and `GOAL_ANCHOR_WEEK_ENDING` at the top of `report.py` if you want to adjust the cut/bulk framing or set your target-trend start date from code instead of the report's own "Start date" picker.
+Syncs new measurements from Renpho, upserts them into `renpho_data.db`, regenerates `report.html`, and opens it in your browser. If Renpho is unreachable or breaks, it falls back to reporting on whatever's already synced instead of crashing -- see `GOAL_MODE` and `GOAL_ANCHOR_WEEK_ENDING` at the top of `renpho_tool/report.py` if you want to adjust the cut/bulk framing or set your target-trend start date from code instead of the report's own "Start date" picker.
 
 ## Automation
 
@@ -85,5 +100,6 @@ The non-obvious calls made while building this, and why, are recorded in **[DECI
 - [x] Phase 3 — interactive HTML report (`report.py`): inline SVG trend chart (weekly + single-week daily views), sortable/goal-aware table, goal-met check, fixed-anchor target trend line, adjustable + persisted week window, light/dark theming
 - [x] Phase 4 — `run.py` entrypoint: fetch -> store -> report -> auto-open, graceful fallback to existing data on any Renpho failure (verified both paths), `test_ingest.py` retired
 - [x] Phase 5 — automated weekly email (`weekly_check.py` + `notify.py`): once-per-completed-week guard, `launchd` daily schedule, verified real send + duplicate-prevention end-to-end
+- [x] Repo restructuring — pipeline modules moved into `renpho_tool/`, the report's HTML/CSS/JS extracted into `report_assets/` as real source files (`report.py` 779 -> 226 lines), `.env.example` added, one-off scripts consolidated under `scripts/exploration/`. See DECISIONS.md for why each piece landed where it did.
 
 **MVP complete, and it now runs itself.** `python run.py` for an on-demand report; the `launchd` job handles the weekly email with no manual steps at all.
