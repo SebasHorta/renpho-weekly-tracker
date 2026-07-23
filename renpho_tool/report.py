@@ -11,14 +11,14 @@ import json
 
 import pandas as pd
 
-from analysis import (
+from .analysis import (
     HOME_TZ,
     dedupe_to_daily,
     load_measurements,
     snap_to_scale_lb,
     weekly_summary,
 )
-from store import get_connection
+from .store import get_connection
 
 # How your current training goal colors the weekly weight/BMI deltas. Flip this
 # 2-3x/year as you switch phases:

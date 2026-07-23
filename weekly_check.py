@@ -11,10 +11,10 @@ Run manually with: venv/bin/python weekly_check.py
 
 from datetime import datetime
 
-from analysis import dedupe_to_daily, load_measurements, weekly_summary
-from fetcher import fetch_measurements
-from notify import build_email, send_email, target_week_ending
-from store import get_connection, has_notified, mark_notified, upsert_measurements
+from renpho_tool.analysis import dedupe_to_daily, load_measurements, weekly_summary
+from renpho_tool.fetcher import fetch_measurements
+from renpho_tool.notify import build_email, send_email, target_week_ending
+from renpho_tool.store import get_connection, has_notified, mark_notified, upsert_measurements
 
 
 def log(message: str) -> None:

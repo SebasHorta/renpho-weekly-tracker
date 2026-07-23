@@ -16,8 +16,8 @@ from email.message import EmailMessage
 import pandas as pd
 from dotenv import load_dotenv
 
-from analysis import HOME_TZ
-from report import COLOR_BAD, COLOR_GOOD, GOAL_MODE
+from .analysis import HOME_TZ
+from .report import COLOR_BAD, COLOR_GOOD, GOAL_MODE
 
 GMAIL_SMTP_HOST = "smtp.gmail.com"
 GMAIL_SMTP_SSL_PORT = 465
@@ -204,8 +204,10 @@ if __name__ == "__main__":
     # Standalone test: build and send the email for the latest completed week,
     # ignoring the once-per-week guard (that lives in weekly_check.py). Lets us
     # verify formatting + delivery without waiting for a real Sunday.
-    from analysis import dedupe_to_daily, load_measurements, weekly_summary
-    from store import get_connection
+    # Run as: venv/bin/python -m renpho_tool.notify (relative imports below
+    # require package context, so this can't be run as a bare script).
+    from .analysis import dedupe_to_daily, load_measurements, weekly_summary
+    from .store import get_connection
 
     conn = get_connection()
     weekly = weekly_summary(dedupe_to_daily(load_measurements(conn)))

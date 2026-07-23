@@ -1,16 +1,16 @@
 """run.py -- the single command to run: fetch -> store -> report -> open.
 
-This is the project's actual entry point (everything else -- fetcher.py,
-store.py, analysis.py, report.py -- is a library module that this script
-chains together). Run with: venv/bin/python run.py
+This is the project's actual entry point (everything under renpho_tool/ --
+fetcher.py, store.py, analysis.py, report.py -- is a library module that
+this script chains together). Run with: venv/bin/python run.py
 """
 
 import webbrowser
 from pathlib import Path
 
-from fetcher import fetch_measurements
-from report import write_report
-from store import get_connection, upsert_measurements
+from renpho_tool.fetcher import fetch_measurements
+from renpho_tool.report import write_report
+from renpho_tool.store import get_connection, upsert_measurements
 
 
 def main():

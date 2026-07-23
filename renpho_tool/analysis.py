@@ -9,7 +9,7 @@ import sqlite3
 
 import pandas as pd
 
-from store import get_connection
+from .store import get_connection
 
 # Metrics where a stored 0 means "not measured" (the scale didn't register
 # full foot contact for bioimpedance), not "measured as zero" -- see the
