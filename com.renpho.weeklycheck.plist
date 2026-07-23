@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd job: runs weekly_check.py once a day. Daily (not weekly) on purpose
+  -- the once-per-week email guard lives in store.py/weekly_check.py itself,
+  so running daily just means "catch the completed week the first day it's
+  possible," even if the laptop was asleep on the exact day a stricter
+  once-a-week schedule would have required.
+
+  This file is a copy kept in the repo for documentation/version control.
+  The copy launchd actually reads lives at
+  ~/Library/LaunchAgents/com.renpho.weeklycheck.plist -- re-copy this file
+  there (see README) after editing it here.
+-->
+<plist version="1.0">
+<dict>
+    <!-- Unique job id, used by launchctl to load/unload/start/stop it. -->
+    <key>Label</key>
+    <string>com.renpho.weeklycheck</string>
+
+    <!-- Exact command launchd runs: the venv's own Python (not system Python,
+         so it has renpho-api/pandas installed) running weekly_check.py. -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/sebastianhortadonneys/Downloads/PersonalProjects/RENPHO-Project/venv/bin/python3</string>
+        <string>/Users/sebastianhortadonneys/Downloads/PersonalProjects/RENPHO-Project/weekly_check.py</string>
+    </array>
+
+    <!-- Run from the project directory, so relative paths (renpho_data.db,
+         .env) resolve the same way they do when you run it by hand. -->
+    <key>WorkingDirectory</key>
+    <string>/Users/sebastianhortadonneys/Downloads/PersonalProjects/RENPHO-Project</string>
+
+    <!-- Daily at 9:00 AM local time. If the Mac is asleep at 9:00, launchd
+         runs the job as soon as it wakes rather than skipping the day.
+         Change Hour/Minute to taste. -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>9</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <!-- weekly_check.py's own timestamped log lines land here instead of
+         vanishing -- launchd jobs have no visible terminal. -->
+    <key>StandardOutPath</key>
+    <string>/Users/sebastianhortadonneys/Downloads/PersonalProjects/RENPHO-Project/logs/weekly_check.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/sebastianhortadonneys/Downloads/PersonalProjects/RENPHO-Project/logs/weekly_check.err.log</string>
+
+    <!-- Don't fire immediately the moment the job is loaded -- only on the
+         schedule above. Use `launchctl start com.renpho.weeklycheck` to
+         trigger a run on demand (e.g. for testing) without waiting. -->
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>
