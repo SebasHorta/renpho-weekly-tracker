@@ -27,7 +27,7 @@ def get_connection(db_path: str = DB_PATH) -> sqlite3.Connection:
 
 
 def _init_schema(conn: sqlite3.Connection) -> None:
-    """Create the measurements table if it doesn't already exist. Safe to call every run."""
+    """Create the tables if they don't already exist. Safe to call every run."""
     conn.execute("""
         CREATE TABLE IF NOT EXISTS measurements (
             id             INTEGER PRIMARY KEY,
@@ -51,6 +51,39 @@ def _init_schema(conn: sqlite3.Connection) -> None:
             flagged        INTEGER NOT NULL DEFAULT 0
         )
     """)
+    # One row per week we've emailed a summary for. This is what lets the
+    # automated weekly_check.py run daily but email only once per completed
+    # week (see has_notified / mark_notified). week_ending is the Saturday
+    # ISO date (YYYY-MM-DD) identifying the Sun-Sat week.
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS notifications (
+            week_ending TEXT PRIMARY KEY,
+            sent_at     TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+
+
+def has_notified(conn: sqlite3.Connection, week_ending_iso: str) -> bool:
+    """Return True if a weekly summary email has already been sent for this Sun-Sat week.
+
+    week_ending_iso is the week's Saturday as 'YYYY-MM-DD'. Called by
+    weekly_check.py before sending, so a daily-running job emails each
+    completed week exactly once.
+    """
+    row = conn.execute(
+        "SELECT 1 FROM notifications WHERE week_ending = ?", (week_ending_iso,)
+    ).fetchone()
+    return row is not None
+
+
+def mark_notified(conn: sqlite3.Connection, week_ending_iso: str) -> None:
+    """Record that this week's summary email was sent, so it's never re-sent. Called after a successful send."""
+    from datetime import datetime, timezone
+    conn.execute(
+        "INSERT OR REPLACE INTO notifications (week_ending, sent_at) VALUES (?, ?)",
+        (week_ending_iso, datetime.now(timezone.utc).isoformat()),
+    )
     conn.commit()
 
 
