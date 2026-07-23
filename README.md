@@ -30,7 +30,7 @@ Chained together by `run.py`. If `renpho-api` ever breaks, only `fetcher.py` nee
 
 ```
 python3 -m venv venv
-venv/bin/pip install "renpho-api[dotenv]"
+venv/bin/pip install "renpho-api[dotenv]" pandas
 ```
 
 Create a `.env` file (gitignored) with:
@@ -54,11 +54,17 @@ A record of the non-obvious calls made while building this, and why — mostly f
 - **Weeks run Sunday-Saturday**, via `pandas.resample('W-SAT')` rather than the pandas default (`'W'`, which ends weeks on Sunday). Matches how weigh-ins are actually tracked day-to-day, and `.mean()` over however many days were logged that week (5, 6, or 7) requires no extra handling.
 - **Weight is stored/averaged in full precision, rounded only at display.** The scale's true value is kg (0.05 kg grid); the RENPHO app displays lb snapped to the nearest 0.2 lb (its lb-mode display resolution — which is why single readings like 174.94→175.0 and 175.49→175.4 look "inconsistently" rounded but aren't). We keep full-precision kg internally and round only in the display layer, since averaging pre-rounded values needlessly loses accuracy.
 - **No session/token persistence.** `renpho-api` re-authenticates via `login()` on every run, with no exposed way to cache a session. Confirmed acceptable for a manual, once-a-week script.
+- **The chart is inline SVG, not matplotlib.** The original plan allowed either. Loaded the project's dataviz design skill before building it and went with hand-built SVG: keeps `report.html` fully self-contained (no ~30MB matplotlib dependency), and SVG themes with light/dark mode, which a baked PNG can't.
+- **The report renders client-side in JavaScript, not Python.** Started as pure Python string-rendering (like the table/chart logic still in `analysis.py`'s docstrings describe). Re-architected when an adjustable week-count control needed to survive a plain page reload — which never runs Python. `report.py` now embeds the *entire* weekly history as JSON in the page; a JS layer (a direct, comment-linked port of the original Python rendering functions, which were deleted rather than kept as an unsynced duplicate) renders the chart and table from it, driven by `localStorage`-backed controls (window size 2-12 weeks, ◀▶ history paging, table sort order). Only the window *size* persists across reload/regeneration — paging position always resets to "now."
+- **Date/time formatting happens in Python, never in JS.** Every date string, week range, and the year(s)-spanned label the chart needs are precomputed server-side and embedded as plain strings/numbers. Given the `localCreatedAt` timezone bug earlier in this project, re-deriving dates client-side felt like reopening the same risk for no benefit — the browser only ever handles numbers and pre-formatted text.
+- **Table dates match the chart's "Week of" framing.** Initially the table showed just the week-ending date; switched to a full span (`Jul 19 – Jul 25, 2026`) alongside the chart's range labels, since "Week of `<end-date>`" would misleadingly imply the week starts there.
+- **Weekly-average precision vs. the scale's display precision.** The RENPHO app snaps individual daily readings to its 0.2 lb display grid; a weekly *average* is a computed trend signal that can meaningfully move by less than that. Daily values (in `analysis.py`'s `snap_to_scale_lb()`) round to match the scale; weekly averages/deltas in the report keep 1 decimal of real precision, so a real sub-0.2 lb weekly trend doesn't get rounded away to a false "no change."
+- **Goal weight is tied to `GOAL_MODE`, not hardcoded to "down."** The in-progress week's target (1% off the prior completed week's average) flips direction automatically with the existing cut/bulk/neutral setting, rather than assuming a cut — stays correct without a second edit if the goal ever changes.
 
 ## Status
 
 - [x] Phase 0 — spike, confirmed real data returns
 - [x] Phase 1 — `fetcher.py` + `store.py`, idempotent SQLite ingest (verified: 1553 -> 1553 rows across two consecutive runs)
 - [x] Phase 2 — weekly averages (`analysis.py`): Sun-Sat resample, week-over-week deltas, daily dedup, timezone-correct bucketing, verified against the RENPHO app
-- [ ] Phase 3 — HTML report (`report.py`)
+- [x] Phase 3 — interactive HTML report (`report.py`): inline SVG trend chart, sortable/goal-aware table, adjustable + persisted week window, light/dark theming
 - [ ] Phase 4 — `run.py` entrypoint, error handling, polish
