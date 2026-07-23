@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RENPHO Weekly Report</title>
+<style>
+__RENPHO_STYLES__
+</style>
+</head>
+<body>
+<main>
+  <h1>RENPHO Weekly Report</h1>
+  <p class="sub">Generated __RENPHO_GENERATED__ · Goal: <span class="goal">__RENPHO_GOAL_LABEL__</span></p>
+
+  <div class="card">
+    <div class="chart-controls">
+      <button type="button" id="prior-weeks" class="nav-btn" aria-label="Show prior weeks" title="Show prior weeks">◀</button>
+      <label class="weeks-control">
+        Weeks shown
+        <input type="number" id="weeks-input" min="__RENPHO_MIN_WEEKS__" max="__RENPHO_MAX_WEEKS__" value="__RENPHO_WEEKS_SHOWN__" />
+      </label>
+      <button type="button" id="next-weeks" class="nav-btn" aria-label="Show more recent weeks" title="Show more recent weeks">▶</button>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-values" checked />
+        Show values
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-trend" checked />
+        Show target trend
+      </label>
+      <label class="weeks-control">
+        Start date
+        <input type="date" id="anchor-date-input" />
+      </label>
+    </div>
+    <div class="chart-legend" id="chart-legend" hidden>
+      <span class="legend-item"><span class="legend-swatch legend-actual"></span>Actual</span>
+      <span class="legend-item"><span class="legend-swatch legend-target"></span>Target</span>
+    </div>
+    <svg viewBox="0 0 980 320" class="trend-svg" role="img" aria-label="Weekly average weight trend"></svg>
+    <p class="caption" id="chart-caption"></p>
+    <noscript><p class="caption">Enable JavaScript to render the chart and table -- this page draws them from embedded data client-side.</p></noscript>
+  </div>
+
+  <div class="card">
+    <table id="weekly-table">
+      <thead><tr>
+        <th id="th-week-ending" class="sortable" title="Click to change sort order">Week of <span class="sort-arrow" id="sort-arrow">▼</span></th>
+        <th>Logs</th>
+        <th>Weight</th><th>Δ</th>
+        <th>Body fat %</th><th>Δ</th>
+        <th>BMI</th><th>Δ</th>
+        <th id="th-goal">Goal (lb)</th>
+        <th id="th-deviation">vs Target (lb)</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</main>
+<script id="weekly-data" type="application/json">__RENPHO_WEEKLY_DATA__</script>
+<script id="daily-data" type="application/json">__RENPHO_DAILY_DATA__</script>
+<script>window.__RENPHO_CONFIG__ = __RENPHO_CONFIG_JSON__;</script>
+<script>
+__RENPHO_REPORT_JS__
+</script>
+</body>
+</html>
