@@ -1,7 +1,9 @@
 """Phase 0 spike: confirm renpho-api returns real data before building the pipeline.
 
-Not part of the final tool -- fetcher.py/store.py will replace this once the
-approach is verified. Run with: venv/bin/python spike.py
+Not part of the final tool -- fetcher.py/store.py replaced this once the
+approach was verified. Kept for historical reference alongside the other
+exploration scripts. Run from the project root with:
+venv/bin/python scripts/exploration/spike.py
 """
 
 import os
